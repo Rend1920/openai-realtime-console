@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A3 Problem Solving Template</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .content {
+            width: calc(100% - 0px);
+            padding-right: 50px;
+            box-sizing: border-box;
+            transition: width 0.3s ease;
+        }
+        .sidebar {
+            width: 25%;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100%;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            box-sizing: border-box;
+            transition: transform 0.3s ease;
+            transform: translateX(100%);
+        }
+        .sidebar.show {
+            transform: translateX(0);
+        }
+        .section {
+            width: 100%;
+            background-color: rgb(255, 255, 255);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .section-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+        }
+        .input-group .input-field {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .root-cause-wrapper {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 10px;
+        }
+        .root-cause-input {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .table-section {
+            width: 100%;
+            margin-bottom: 20px;
+            background-color: rgb(255, 255, 255);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .table-section table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-section th, .table-section td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .content {
+                width: 100%;
+            }
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                box-shadow: none;
+                margin-top: 20px;
+            }
+            .input-group {
+                flex-direction: column;
+            }
+            .input-group .input-field {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
+        .chatgpt-button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .chatgpt-button:hover {
+            background-color: #0056b3;
+        }
+        .logo-container {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo-container img {
+            width: 150px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    
+        <button id="toggleSidebar" onclick="toggleSidebar()" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">Hide Sidebar</button>
+        <div class="logo-container">
+            <img src="/Users/danielrendon/Documents/Rend/Bosch/Prototypes/First website/BSH.svg" alt="BSH Logo">
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <div class="section-header">1) Wahrnehmung des Problems bzw. der Abweichung</div>
+                <input type="text" class="input-field" placeholder="Beschreibung des Problems">
+                <div class="input-group">
+                    <input type="text" class="input-field" placeholder="Was">
+                    <input type="text" class="input-field" placeholder="Wo">
+                    <input type="text" class="input-field" placeholder="Wer">
+                </div>
+                <div class="input-group">
+                    <input type="text" class="input-field" placeholder="Wann">
+                    <input type="text" class="input-field" placeholder="Wie oft">
+                    <input type="text" class="input-field" placeholder="Wie viel">
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">2) Problembeschreibung</div>
+                <textarea class="input-field" placeholder="Grafischer Verlauf des Problems"></textarea>
+                <div class="table-section">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ansatz</th>
+                                <th>Objekt</th>
+                                <th>Defekt am Objekt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>System</td>
+                                <td><input type="text" class="input-field" placeholder="Objekt"></td>
+                                <td><input type="text" class="input-field" placeholder="Defekt am Objekt"></td>
+                            </tr>
+                            <tr>
+                                <td>Prozess</td>
+                                <td><input type="text" class="input-field" placeholder="Objekt"></td>
+                                <td><input type="text" class="input-field" placeholder="Defekt am Objekt"></td>
+                            </tr>
+                            <tr>
+                                <td>Produkt</td>
+                                <td><input type="text" class="input-field" placeholder="Objekt"></td>
+                                <td><input type="text" class="input-field" placeholder="Defekt am Objekt"></td>
+                            </tr>
+                            <tr>
+                                <td>Komponente</td>
+                                <td><input type="text" class="input-field" placeholder="Objekt"></td>
+                                <td><input type="text" class="input-field" placeholder="Defekt am Objekt"></td>
+                            </tr>
+                            <tr>
+                                <td>Kleinste Mögliche Objekt</td>
+                                <td><input type="text" class="input-field" placeholder="Objekt"></td>
+                                <td><input type="text" class="input-field" placeholder="Defekt am Objekt"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">2.1) IST/SOLL Beschreibung</div>
+                <canvas id="drawingCanvas" style="border: 1px solid #ddd; margin-bottom: 15px; background-color: #fff; width: 100%; height: 400px;"></canvas>
+                <button onclick="clearCanvas()" style="margin-bottom: 15px;">Clear Drawing</button>
+            </div>
+
+            <div class="section">
+                <div class="section-header">3) Sofort-Maßnahme</div>
+                <input type="text" class="input-field" placeholder="Eingesetzt von">
+                <input type="text" class="input-field" placeholder="Bis">
+            </div>
+
+            <div class="section">
+                <div class="section-header">4) Ursachenanalyse (Ishikawa / 5x Warum)</div>
+                <div class="root-cause-wrapper">
+                    <div class="root-cause-input">Warum 1: <input type="text"></div>
+                    <div class="root-cause-input">Warum 2: <input type="text"></div>
+                    <div class="root-cause-input">Warum 3: <input type="text"></div>
+                    <div class="root-cause-input">Warum 4: <input type="text"></div>
+                    <div class="root-cause-input">Warum 5: <input type="text"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">5) Gegenmaßnahmen</div>
+                <textarea class="input-field" placeholder="Maßnahme"></textarea>
+                <input type="text" class="input-field" placeholder="Verantwortlicher">
+                <input type="date" class="input-field" placeholder="Termin">
+            </div>
+
+            <div class="section">
+                <div class="section-header">6) Wirksamkeitskontrolle der implementierten Maßnahmen</div>
+                <textarea class="input-field" placeholder="Kontrolle der Wirksamkeit..."></textarea>
+            </div>
+
+            <div class="section">
+                <div class="section-header">7) Standardisierung</div>
+                <textarea class="input-field" placeholder="Welcher Standard muss geändert oder erstellt werden?"></textarea>
+                <input type="text" class="input-field" placeholder="Verantwortlicher">
+                <input type="date" class="input-field" placeholder="Termin">
+            </div>
+
+            <div class="section">
+                <div class="section-header">8) Unterschriften zur Abnahme der Lösung sowie des Lösungsweges</div>
+                <textarea class="input-field" placeholder="Leiter betroffen Bereich / Verantwortlicher"></textarea>
+            </div>
+        </div>
+
+    <div class="sidebar" id="sidebar">
+        
+        <h2>Notes</h2>
+        <textarea class="input-field" placeholder="Write quick notes here..." rows="10"></textarea>
+        <button class="chatgpt-button" onclick="accessChatGPT()">Access ChatGPT (Speech to Speech)</button>
+    </div>
+
+    <script>
+        function accessChatGPT() {
+            // Placeholder for the actual ChatGPT API integration.
+            // Here you would use the ChatGPT API to process the student input and provide speech-based interaction.
+            alert("ChatGPT API feature coming soon! This button will allow speech interaction and processing of student input.");
+        }
+    </script>
+<script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        // Adjust canvas size to match its display size
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = 400;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        function startDrawing(event) {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(event.clientX - canvas.getBoundingClientRect().left, event.clientY - canvas.getBoundingClientRect().top);
+        }
+
+        function draw(event) {
+            if (!drawing) return;
+            ctx.lineTo(event.clientX - canvas.getBoundingClientRect().left, event.clientY - canvas.getBoundingClientRect().top);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            drawing = false;
+            ctx.closePath();
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+<script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const content = document.querySelector('.content');
+            const button = document.getElementById('toggleSidebar');
+            if (sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+                content.style.width = '100%';
+                button.textContent = 'Show Sidebar';
+            } else {
+                sidebar.classList.add('show');
+                content.style.width = 'calc(100% - 25%)';
+                button.textContent = 'Hide Sidebar';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,13 +1,3 @@
-/**
- * Running a local relay server will allow you to hide your API key
- * and run custom logic on the server
- *
- * Set the local relay server address to:
- * REACT_APP_LOCAL_RELAY_SERVER_URL=http://localhost:8081
- *
- * This will also require you to set OPENAI_API_KEY= in a `.env` file
- * You can run it with `npm run relay`, in parallel with `npm start`
- */
 const LOCAL_RELAY_SERVER_URL: string =
   process.env.REACT_APP_LOCAL_RELAY_SERVER_URL || '';
 
@@ -27,9 +17,6 @@ import { Map } from '../components/Map';
 import './ConsolePage.scss';
 import { isJsxOpeningLikeElement } from 'typescript';
 
-/**
- * Type for result from get_weather() function call
- */
 interface Coordinates {
   lat: number;
   lng: number;
@@ -44,9 +31,7 @@ interface Coordinates {
   };
 }
 
-/**
- * Type for all event logs
- */
+
 interface RealtimeEvent {
   time: string;
   source: 'client' | 'server';
@@ -55,10 +40,9 @@ interface RealtimeEvent {
 }
 
 export function ConsolePage() {
-  /**
-   * Ask user for API Key
-   * If we're using the local relay server, we don't need this
-   */
+  const temperatureRef = useRef<{ value: number; units: string } | null>(null);
+  const whatRef = useRef<{ value: string;} | null>(null);
+  const whereRef = useRef<{ value: string;} | null>(null);
   const apiKey = LOCAL_RELAY_SERVER_URL
     ? ''
     : localStorage.getItem('tmp::voice_api_key') ||
@@ -68,12 +52,6 @@ export function ConsolePage() {
     localStorage.setItem('tmp::voice_api_key', apiKey);
   }
 
-  /**
-   * Instantiate:
-   * - WavRecorder (speech input)
-   * - WavStreamPlayer (speech output)
-   * - RealtimeClient (API client)
-   */
   const wavRecorderRef = useRef<WavRecorder>(
     new WavRecorder({ sampleRate: 24000 })
   );
@@ -91,30 +69,18 @@ export function ConsolePage() {
     )
   );
 
-  /**
-   * References for
-   * - Rendering audio visualization (canvas)
-   * - Autoscrolling event logs
-   * - Timing delta for event log displays
-   */
   const clientCanvasRef = useRef<HTMLCanvasElement>(null);
   const serverCanvasRef = useRef<HTMLCanvasElement>(null);
   const eventsScrollHeightRef = useRef(0);
   const eventsScrollRef = useRef<HTMLDivElement>(null);
   const startTimeRef = useRef<string>(new Date().toISOString());
 
-  /**
-   * All of our variables for displaying application state
-   * - items are all conversation items (dialog)
-   * - realtimeEvents are event logs, which can be expanded
-   * - memoryKv is for set_memory() function
-   * - coords, marker are for get_weather() function
-   */
   const [items, setItems] = useState<ItemType[]>([]);
   const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
   const [expandedEvents, setExpandedEvents] = useState<{
     [key: string]: boolean;
   }>({});
+  const Favrite_food = "Tomatoes";
   const [isConnected, setIsConnected] = useState(false);
   const [canPushToTalk, setCanPushToTalk] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
@@ -124,10 +90,36 @@ export function ConsolePage() {
     lng: -122.418137,
   });
   const [marker, setMarker] = useState<Coordinates | null>(null);
+  
+ 
+  const initialData = {
+    What: "",
+    Where: "",
+    How: "",
+    When: "",
+    HowMany: ""
+  };
+  const [inputData, setInputData] = useState(initialData);
+  const testy = {
+    value: inputData.What,
+    units: inputData.Where,
+  };
+  const dummy = {
+    value: 666,
+    units: "°K",
+  };
+  const temperature = testy;
+  
 
-  /**
-   * Utility for formatting the timing of logs
-   */
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setInputData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
   const formatTime = useCallback((timestamp: string) => {
     const startTime = startTimeRef.current;
     const t0 = new Date(startTime).valueOf();
@@ -146,9 +138,6 @@ export function ConsolePage() {
     return `${pad(m)}:${pad(s)}.${pad(hs)}`;
   }, []);
 
-  /**
-   * When you click the API key
-   */
   const resetAPIKey = useCallback(() => {
     const apiKey = prompt('OpenAI API Key');
     if (apiKey !== null) {
@@ -158,34 +147,23 @@ export function ConsolePage() {
     }
   }, []);
 
-  /**
-   * Connect to conversation:
-   * WavRecorder taks speech input, WavStreamPlayer output, client is API client
-   */
   const connectConversation = useCallback(async () => {
     const client = clientRef.current;
     const wavRecorder = wavRecorderRef.current;
     const wavStreamPlayer = wavStreamPlayerRef.current;
 
-    // Set state variables
     startTimeRef.current = new Date().toISOString();
     setIsConnected(true);
     setRealtimeEvents([]);
     setItems(client.conversation.getItems());
 
-    // Connect to microphone
     await wavRecorder.begin();
-
-    // Connect to audio output
     await wavStreamPlayer.connect();
-
-    // Connect to realtime API
     await client.connect();
     client.sendUserMessageContent([
       {
         type: `input_text`,
         text: `Hello!`,
-        // text: `For testing purposes, I want you to list ten car brands. Number each item, e.g. "one (or whatever number you are one): the item name".`
       },
     ]);
 
@@ -194,19 +172,11 @@ export function ConsolePage() {
     }
   }, []);
 
-  /**
-   * Disconnect and reset conversation state
-   */
   const disconnectConversation = useCallback(async () => {
     setIsConnected(false);
     setRealtimeEvents([]);
     setItems([]);
     setMemoryKv({});
-    setCoords({
-      lat: 37.775593,
-      lng: -122.418137,
-    });
-    setMarker(null);
 
     const client = clientRef.current;
     client.disconnect();
@@ -223,10 +193,6 @@ export function ConsolePage() {
     client.deleteItem(id);
   }, []);
 
-  /**
-   * In push-to-talk mode, start recording
-   * .appendInputAudio() for each sample
-   */
   const startRecording = async () => {
     setIsRecording(true);
     const client = clientRef.current;
@@ -240,9 +206,6 @@ export function ConsolePage() {
     await wavRecorder.record((data) => client.appendInputAudio(data.mono));
   };
 
-  /**
-   * In push-to-talk mode, stop recording
-   */
   const stopRecording = async () => {
     setIsRecording(false);
     const client = clientRef.current;
@@ -251,9 +214,6 @@ export function ConsolePage() {
     client.createResponse();
   };
 
-  /**
-   * Switch between Manual <> VAD mode for communication
-   */
   const changeTurnEndType = async (value: string) => {
     const client = clientRef.current;
     const wavRecorder = wavRecorderRef.current;
@@ -268,15 +228,26 @@ export function ConsolePage() {
     }
     setCanPushToTalk(value === 'none');
   };
+  useEffect(() => {
+    //temperatureRef.current = {
+      //value: inputData.What, // NEW: Sync the "What" input from `inputData`
+      //units: inputData.Where, // NEW: Sync the "Where" input from `inputData`
+    //};
 
-  /**
-   * Auto-scroll the event logs
-   */
+    //console.log(temperatureRef);
+    whatRef.current = {
+      value: inputData.What,
+    }
+    whereRef.current = {
+      value: inputData.Where,
+    }
+  }, [inputData.What, inputData.Where]); // NEW: Dependencies to update ref whenever these inputs change
+
+
   useEffect(() => {
     if (eventsScrollRef.current) {
       const eventsEl = eventsScrollRef.current;
       const scrollHeight = eventsEl.scrollHeight;
-      // Only scroll if height has just changed
       if (scrollHeight !== eventsScrollHeightRef.current) {
         eventsEl.scrollTop = scrollHeight;
         eventsScrollHeightRef.current = scrollHeight;
@@ -284,9 +255,6 @@ export function ConsolePage() {
     }
   }, [realtimeEvents]);
 
-  /**
-   * Auto-scroll the conversation logs
-   */
   useEffect(() => {
     const conversationEls = [].slice.call(
       document.body.querySelectorAll('[data-conversation-content]')
@@ -297,9 +265,6 @@ export function ConsolePage() {
     }
   }, [items]);
 
-  /**
-   * Set up render loops for the visualization canvas
-   */
   useEffect(() => {
     let isLoaded = true;
 
@@ -367,21 +332,13 @@ export function ConsolePage() {
     };
   }, []);
 
-  /**
-   * Core RealtimeClient and audio capture setup
-   * Set all of our instructions, tools, events and more
-   */
   useEffect(() => {
-    // Get refs
     const wavStreamPlayer = wavStreamPlayerRef.current;
     const client = clientRef.current;
-
-    // Set instructions
+  
     client.updateSession({ instructions: instructions });
-    // Set transcription, otherwise we don't get user transcriptions back
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
 
-    // Add tools
     client.addTool(
       {
         name: 'set_memory',
@@ -435,32 +392,61 @@ export function ConsolePage() {
           required: ['lat', 'lng', 'location'],
         },
       },
-      async ({ lat, lng, location }: { [key: string]: any }) => {
+      async ({ lat, lng, location}: { [key: string]: any }) => {
         setMarker({ lat, lng, location });
         setCoords({ lat, lng, location });
         const result = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`
         );
         const json = await result.json();
-        const temperature = {
-          value: json.current.temperature_2m as number,
-          units: json.current_units.temperature_2m as string,
-        };
+        
         const wind_speed = {
           value: json.current.wind_speed_10m as number,
           units: json.current_units.wind_speed_10m as string,
         };
-        setMarker({ lat, lng, location, temperature, wind_speed });
-        return json;
+        const latestTemperature = temperatureRef.current; // NEW: Access the latest value of the temperature
+        console.log('Latest temperature:', latestTemperature); // NEW: Log the latest temperature for debugging
+
+        const temperature = latestTemperature || { value: 0, units: '' }; // NEW: Use the latest temperature or a fallback value
+        setMarker({ lat, lng, location, temperature, wind_speed }); // NEW: Include the latest temperature in the marker
+        return temperature;
       }
     );
-
-    // handle realtime events from client + server for event logging
+    client.addTool(
+      {
+        name: 'Answer',
+        description:
+          'Retrieves the answers from the input box that the user inserts always mention the user his answer.',
+        parameters: {
+          type: 'object',
+          properties: {
+            what: {
+              type: 'string',
+              description: 'answer to the question input of "what" mention it to the user',
+            },
+            where: {
+              type: 'string',
+              description: 'answer to the question input of "where" mention it to the user',
+            },
+            
+          },
+          required: [],
+        },
+      },
+      async ({ what, where }: { [key: string]: any }) => {
+        //const latestTemperature = temperatureRef.current; // NEW: Access the latest value of the temperature
+        //console.log('Latest temperature:', latestTemperature); // NEW: Log the latest temperature for debugging
+        //const temperature = latestTemperature || { value: 0, units: '' }; // NEW: Use the latest temperature or a fallback value
+        // NEW: Include the latest temperature in the marker
+        const whatValue = whatRef.current;
+        const whereValue = whereRef.current;
+        return [whatValue, whereValue];
+      }
+    );
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
       setRealtimeEvents((realtimeEvents) => {
         const lastEvent = realtimeEvents[realtimeEvents.length - 1];
         if (lastEvent?.event.type === realtimeEvent.event.type) {
-          // if we receive multiple events in a row, aggregate them for display purposes
           lastEvent.count = (lastEvent.count || 0) + 1;
           return realtimeEvents.slice(0, -1).concat(lastEvent);
         } else {
@@ -495,20 +481,16 @@ export function ConsolePage() {
     setItems(client.conversation.getItems());
 
     return () => {
-      // cleanup; resets to defaults
       client.reset();
     };
   }, []);
 
-  /**
-   * Render the application
-   */
   return (
     <div data-component="ConsolePage">
       <div className="content-top">
         <div className="content-title">
-          <img src="/openai-logomark.svg" />
-          <span>realtime console</span>
+         <img src="/BSH.svg" />
+          <span>A3I realtime console</span>
         </div>
         <div className="content-api-key">
           {!LOCAL_RELAY_SERVER_URL && (
@@ -524,81 +506,144 @@ export function ConsolePage() {
       </div>
       <div className="content-main">
         <div className="content-logs">
-          <div className="content-block events">
-            <div className="visualization">
-              <div className="visualization-entry client">
-                <canvas ref={clientCanvasRef} />
+          
+          <div className="form-grid" style={{ width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
+            {/* 1)Perception  of presenting problem */}
+            <div className="form-section">
+              <h3>1)Perception  of presenting problem</h3>
+              <input type="text" placeholder="Problem description" />
+              <div className="form-row">
+                <h2>&nbsp;&nbsp;What&nbsp;&nbsp;&nbsp; </h2>
+                <input type="text" name="What" value={inputData.What} onChange={handleInputChange} placeholder="  Is" />
+                <input type="text" placeholder="  Is not" />
               </div>
-              <div className="visualization-entry server">
-                <canvas ref={serverCanvasRef} />
+              <div className="form-row">
+                <h2>&nbsp;&nbsp;Where&nbsp;&nbsp;</h2>
+                <input type="text" name="Where" value={inputData.Where} onChange={handleInputChange} placeholder="  Is" />
+                <input type="text" placeholder="  Is not" />
+              </div>
+              <div className="form-row">
+              <h2>&nbsp;&nbsp;&nbsp;How&nbsp;&nbsp;&nbsp; </h2>
+                <input type="text" name="How" value={inputData.How} onChange={handleInputChange} placeholder="  Is" />
+                <input type="text" placeholder="  Is not" />
+              </div>
+              <div className="form-row">
+                <h2>&nbsp;&nbsp;When&nbsp;&nbsp;&nbsp; </h2>
+                <input type="text" name="When" value={inputData.When} onChange={handleInputChange} placeholder="  Is" />
+                <input type="text" placeholder="  Is not" />
+              </div>
+              <div className="form-row">
+                <h2>How many&nbsp; </h2>
+                <input type="text" name="HowMany" value={inputData.HowMany} onChange={handleInputChange} placeholder="  Is" />
+                <input type="text" placeholder="  Is not" />
               </div>
             </div>
-            <div className="content-block-title">events</div>
-            <div className="content-block-body" ref={eventsScrollRef}>
-              {!realtimeEvents.length && `awaiting connection...`}
-              {realtimeEvents.map((realtimeEvent, i) => {
-                const count = realtimeEvent.count;
-                const event = { ...realtimeEvent.event };
-                if (event.type === 'input_audio_buffer.append') {
-                  event.audio = `[trimmed: ${event.audio.length} bytes]`;
-                } else if (event.type === 'response.audio.delta') {
-                  event.delta = `[trimmed: ${event.delta.length} bytes]`;
-                }
-                return (
-                  <div className="event" key={event.event_id}>
-                    <div className="event-timestamp">
-                      {formatTime(realtimeEvent.time)}
-                    </div>
-                    <div className="event-details">
-                      <div
-                        className="event-summary"
-                        onClick={() => {
-                          // toggle event details
-                          const id = event.event_id;
-                          const expanded = { ...expandedEvents };
-                          if (expanded[id]) {
-                            delete expanded[id];
-                          } else {
-                            expanded[id] = true;
-                          }
-                          setExpandedEvents(expanded);
-                        }}
-                      >
-                        <div
-                          className={`event-source ${
-                            event.type === 'error'
-                              ? 'error'
-                              : realtimeEvent.source
-                          }`}
-                        >
-                          {realtimeEvent.source === 'client' ? (
-                            <ArrowUp />
-                          ) : (
-                            <ArrowDown />
-                          )}
-                          <span>
-                            {event.type === 'error'
-                              ? 'error!'
-                              : realtimeEvent.source}
-                          </span>
-                        </div>
-                        <div className="event-type">
-                          {event.type}
-                          {count && ` (${count})`}
-                        </div>
-                      </div>
-                      {!!expandedEvents[event.event_id] && (
-                        <div className="event-payload">
-                          {JSON.stringify(event, null, 2)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Empieza 2)Problem description */}
+            <div className="form-section">
+              <h3>2)Problem description</h3>
+              <div className="form-row">
+                <h2>&nbsp;Aproach&nbsp; </h2>
+                <input type="text" placeholder="  Object" />
+                <input type="text" placeholder="  Defect on object" />
+              </div>
+              <div className="form-row">
+                <h2>&nbsp;System&nbsp;&nbsp;</h2>
+                <input type="text" placeholder="  Object" />
+                <input type="text" placeholder="  Defect on object" />
+              </div>
+              <div className="form-row">
+              <h2>&nbsp;Process&nbsp; </h2>
+              <input type="text" placeholder="  Object" />
+              <input type="text" placeholder="  Defect on object" />
+              </div>
+              <div className="form-row">
+                <h2>&nbsp;Product&nbsp; </h2>
+                <input type="text" placeholder="  Object" />
+                <input type="text" placeholder="  Defect on object" />
+              </div>
+              <div className="form-row">
+                <h2>Component</h2>
+                <input type="text" placeholder="  Object" />
+                <input type="text" placeholder="  Defect on object" />
+              </div>
+              <div className="form-row">
+                <h2>&nbsp;&nbsp;&nbsp;SMO&nbsp;&nbsp;&nbsp; </h2>
+                <input type="text" placeholder="  Object" />
+                <input type="text" placeholder="  Defect on object" />
+              </div>
+            </div>
+            {/* Empieza 4)Ishikawa */}
+            <div className="form-section">
+              <h3>4) Cause and effect analysis</h3>
+              <input type="text" placeholder="Samallest possible object" />
+              <div className="form-row">
+                <h2>Fishbone diagram</h2>
+              </div>
+              <div className="form-row">
+                <input type="text" placeholder="Human" />
+                <input type="text" placeholder="Machine" />
+                <input type="text" placeholder="Method" />
+                <input type="text" placeholder="Material" />
+                <input type="text" placeholder="Enviroment" />
+              </div>
+              <div className="form-row">
+                <input type="text" placeholder="Human" />
+                <input type="text" placeholder="Machine" />
+                <input type="text" placeholder="Method" />
+                <input type="text" placeholder="Material" />
+                <input type="text" placeholder="Enviroment" />
+              </div>
+              <div className="form-row">
+                <input type="text" placeholder="Human" />
+                <input type="text" placeholder="Machine" />
+                <input type="text" placeholder="Method" />
+                <input type="text" placeholder="Material" />
+                <input type="text" placeholder="Enviroment" />
+              </div>
+            </div>
+             {/* Empieza 4)Ishikawa */}
+             <div className="form-section">
+              <h3>4.1) Root cause analysis</h3>
+              
+              <div className="form-row">
+                <h2>Rood cause 1</h2>
+                <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+              </div>
+              <div className="form-row">
+              <h2>Rood cause 2</h2>
+              <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+              </div>
+              <div className="form-row">
+              <h2>Rood cause 3</h2>
+              <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+                <input type="text" placeholder="Why" />
+              </div>
+            </div>
+            {/* Empieza 4)Ishikawa */}
+            <div className="form-section">
+              <h3>2) Problem description</h3>
+              <textarea placeholder="Grafischer Verlauf des Problems" />
+              <div className="form-row">
+                <input type="text" placeholder="Ansatz" />
+                <input type="text" placeholder="Objekt" />
+                <input type="text" placeholder="Defekt am Objekt" />
+                
+              </div>
             </div>
           </div>
-          <div className="content-block conversation">
+           {/* Empieza conversacion */}
+          <div className="content-block conversation" style={{ flexGrow: 1, overflowY: 'auto' }}>
             <div className="content-block-title">conversation</div>
             <div className="content-block-body" data-conversation-content>
               {!items.length && `awaiting connection...`}
@@ -621,11 +666,9 @@ export function ConsolePage() {
                       </div>
                     </div>
                     <div className={`speaker-content`}>
-                      {/* tool response */}
                       {conversationItem.type === 'function_call_output' && (
                         <div>{conversationItem.formatted.output}</div>
                       )}
-                      {/* tool call */}
                       {!!conversationItem.formatted.tool && (
                         <div>
                           {conversationItem.formatted.tool.name}(
@@ -692,36 +735,32 @@ export function ConsolePage() {
           </div>
         </div>
         <div className="content-right">
-          <div className="content-block map">
-            <div className="content-block-title">get_weather()</div>
-            <div className="content-block-title bottom">
-              {marker?.location || 'not yet retrieved'}
-              {!!marker?.temperature && (
-                <>
-                  <br />
-                  🌡️ {marker.temperature.value} {marker.temperature.units}
-                </>
-              )}
-              {!!marker?.wind_speed && (
-                <>
-                  {' '}
-                  🍃 {marker.wind_speed.value} {marker.wind_speed.units}
-                </>
-              )}
-            </div>
-            <div className="content-block-body full">
-              {coords && (
-                <Map
-                  center={[coords.lat, coords.lng]}
-                  location={coords.location}
-                />
-              )}
-            </div>
-          </div>
           <div className="content-block kv">
             <div className="content-block-title">set_memory()</div>
             <div className="content-block-body content-kv">
               {JSON.stringify(memoryKv, null, 2)}
+            </div>
+          </div>
+          <div className="content-block kv">
+            <div className="content-block-title">Temperature()</div>
+            <div className="content-block-body content-kv">
+              {JSON.stringify(temperature, null, 2)}
+            </div>
+          </div>
+          <div className="content-block kv">
+            <div className="content-block-title">Answers()</div>
+            <div className="content-block-body content-kv">
+              {JSON.stringify(testy, null, 2)}
+            </div>
+          </div>
+          <div className="content-block events">
+            <div className="visualization">
+              <div className="visualization-entry client">
+                <canvas ref={clientCanvasRef} />
+              </div>
+              <div className="visualization-entry server">
+                <canvas ref={serverCanvasRef} />
+              </div>
             </div>
           </div>
         </div>
