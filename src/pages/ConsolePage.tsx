@@ -43,6 +43,7 @@ export function ConsolePage() {
   const temperatureRef = useRef<{ value: number; units: string } | null>(null);
   const whatRef = useRef<{ value: string;} | null>(null);
   const whereRef = useRef<{ value: string;} | null>(null);
+  const howRef = useRef<{ value: string;} | null>(null);
   const apiKey = LOCAL_RELAY_SERVER_URL
     ? ''
     : localStorage.getItem('tmp::voice_api_key') ||
@@ -241,7 +242,10 @@ export function ConsolePage() {
     whereRef.current = {
       value: inputData.Where,
     }
-  }, [inputData.What, inputData.Where]); // NEW: Dependencies to update ref whenever these inputs change
+    howRef.current = {
+      value: inputData.How,
+    }
+  }, [inputData.What, inputData.Where, inputData.How]); // NEW: Dependencies to update ref whenever these inputs change
 
 
   useEffect(() => {
@@ -428,19 +432,25 @@ export function ConsolePage() {
               type: 'string',
               description: 'answer to the question input of "where" mention it to the user',
             },
+            how: {
+              type: 'string',
+              description: 'answer to the question input of "how" mention it to the user',
+            },
             
           },
           required: [],
         },
       },
-      async ({ what, where }: { [key: string]: any }) => {
+      async ({ what, where, how }: { [key: string]: any }) => {
         //const latestTemperature = temperatureRef.current; // NEW: Access the latest value of the temperature
         //console.log('Latest temperature:', latestTemperature); // NEW: Log the latest temperature for debugging
         //const temperature = latestTemperature || { value: 0, units: '' }; // NEW: Use the latest temperature or a fallback value
         // NEW: Include the latest temperature in the marker
         const whatValue = whatRef.current;
         const whereValue = whereRef.current;
-        return [whatValue, whereValue];
+        const howValue = howRef.current;
+
+        return [whatValue, whereValue, howValue];
       }
     );
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
