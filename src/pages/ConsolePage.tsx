@@ -44,6 +44,7 @@ export function ConsolePage() {
   const whatRef = useRef<{ value: string;} | null>(null);
   const whereRef = useRef<{ value: string;} | null>(null);
   const howRef = useRef<{ value: string;} | null>(null);
+  const whenRef = useRef<{ value: string;} | null>(null);
   const apiKey = LOCAL_RELAY_SERVER_URL
     ? ''
     : localStorage.getItem('tmp::voice_api_key') ||
@@ -245,7 +246,10 @@ export function ConsolePage() {
     howRef.current = {
       value: inputData.How,
     }
-  }, [inputData.What, inputData.Where, inputData.How]); // NEW: Dependencies to update ref whenever these inputs change
+    whenRef.current = {
+      value: inputData.When,
+    }
+  }, [inputData.What, inputData.Where, inputData.How, inputData.When]); // NEW: Dependencies to update ref whenever these inputs change
 
 
   useEffect(() => {
@@ -436,12 +440,16 @@ export function ConsolePage() {
               type: 'string',
               description: 'answer to the question input of "how" mention it to the user',
             },
+            when: {
+              type: 'string',
+              description: 'answer to the question input of "when" mention it to the user',
+            },
             
           },
           required: [],
         },
       },
-      async ({ what, where, how }: { [key: string]: any }) => {
+      async ({ what, where, how, when }: { [key: string]: any }) => {
         //const latestTemperature = temperatureRef.current; // NEW: Access the latest value of the temperature
         //console.log('Latest temperature:', latestTemperature); // NEW: Log the latest temperature for debugging
         //const temperature = latestTemperature || { value: 0, units: '' }; // NEW: Use the latest temperature or a fallback value
@@ -449,8 +457,9 @@ export function ConsolePage() {
         const whatValue = whatRef.current;
         const whereValue = whereRef.current;
         const howValue = howRef.current;
+        const whenValue = whenRef.current;
 
-        return [whatValue, whereValue, howValue];
+        return [whatValue, whereValue, howValue, whenRef];
       }
     );
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
