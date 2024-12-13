@@ -2,35 +2,17 @@ const LOCAL_RELAY_SERVER_URL: string =
   process.env.REACT_APP_LOCAL_RELAY_SERVER_URL || '';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-
 import { RealtimeClient } from '@openai/realtime-api-beta';
 import { ItemType } from '@openai/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools/index.js';
 import { instructions } from '../utils/conversation_config.js';
 import { WavRenderer } from '../utils/wav_renderer';
-
 import { X, Edit, Zap, ArrowUp, ArrowDown } from 'react-feather';
 import { Button } from '../components/button/Button';
 import { Toggle } from '../components/toggle/Toggle';
 import { Map } from '../components/Map';
-
 import './ConsolePage.scss';
 import { isJsxOpeningLikeElement } from 'typescript';
-
-interface Coordinates {
-  lat: number;
-  lng: number;
-  location?: string;
-  temperature?: {
-    value: number;
-    units: string;
-  };
-  wind_speed?: {
-    value: number;
-    units: string;
-  };
-}
-
 
 interface RealtimeEvent {
   time: string;
@@ -40,11 +22,11 @@ interface RealtimeEvent {
 }
 
 export function ConsolePage() {
-  const temperatureRef = useRef<{ value: number; units: string } | null>(null);
   const whatRef = useRef<{ value: string;} | null>(null);
   const whereRef = useRef<{ value: string;} | null>(null);
   const howRef = useRef<{ value: string;} | null>(null);
   const whenRef = useRef<{ value: string;} | null>(null);
+  const howmanyRef = useRef<{ value: string;} | null>(null);
   const apiKey = LOCAL_RELAY_SERVER_URL
     ? ''
     : localStorage.getItem('tmp::voice_api_key') ||
@@ -76,44 +58,23 @@ export function ConsolePage() {
   const eventsScrollHeightRef = useRef(0);
   const eventsScrollRef = useRef<HTMLDivElement>(null);
   const startTimeRef = useRef<string>(new Date().toISOString());
-
   const [items, setItems] = useState<ItemType[]>([]);
   const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
-  const [expandedEvents, setExpandedEvents] = useState<{
-    [key: string]: boolean;
-  }>({});
-  const Favrite_food = "Tomatoes";
   const [isConnected, setIsConnected] = useState(false);
   const [canPushToTalk, setCanPushToTalk] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [memoryKv, setMemoryKv] = useState<{ [key: string]: any }>({});
-  const [coords, setCoords] = useState<Coordinates | null>({
-    lat: 37.775593,
-    lng: -122.418137,
-  });
-  const [marker, setMarker] = useState<Coordinates | null>(null);
-  
+
  
   const initialData = {
     What: "",
     Where: "",
     How: "",
-    When: "",
-    HowMany: ""
+    when: "",
+    howmany: ""
   };
   const [inputData, setInputData] = useState(initialData);
-  const testy = {
-    value: inputData.What,
-    units: inputData.Where,
-  };
-  const dummy = {
-    value: 666,
-    units: "°K",
-  };
-  const temperature = testy;
-  
-
-
+ 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setInputData((prevData) => ({
@@ -231,12 +192,7 @@ export function ConsolePage() {
     setCanPushToTalk(value === 'none');
   };
   useEffect(() => {
-    //temperatureRef.current = {
-      //value: inputData.What, // NEW: Sync the "What" input from `inputData`
-      //units: inputData.Where, // NEW: Sync the "Where" input from `inputData`
-    //};
-
-    //console.log(temperatureRef);
+   
     whatRef.current = {
       value: inputData.What,
     }
@@ -247,10 +203,12 @@ export function ConsolePage() {
       value: inputData.How,
     }
     whenRef.current = {
-      value: inputData.When,
+      value: inputData.when,
     }
-  }, [inputData.What, inputData.Where, inputData.How, inputData.When]); // NEW: Dependencies to update ref whenever these inputs change
-
+    howmanyRef.current = {
+      value: inputData.howmany,
+    }
+  }, [inputData.What, inputData.Where, inputData.How, inputData.when, inputData.howmany]); // NEW: Dependencies to update ref whenever these inputs change
 
   useEffect(() => {
     if (eventsScrollRef.current) {
@@ -262,7 +220,6 @@ export function ConsolePage() {
       }
     }
   }, [realtimeEvents]);
-
   useEffect(() => {
     const conversationEls = [].slice.call(
       document.body.querySelectorAll('[data-conversation-content]')
@@ -272,18 +229,14 @@ export function ConsolePage() {
       conversationEl.scrollTop = conversationEl.scrollHeight;
     }
   }, [items]);
-
   useEffect(() => {
     let isLoaded = true;
-
     const wavRecorder = wavRecorderRef.current;
     const clientCanvas = clientCanvasRef.current;
     let clientCtx: CanvasRenderingContext2D | null = null;
-
     const wavStreamPlayer = wavStreamPlayerRef.current;
     const serverCanvas = serverCanvasRef.current;
     let serverCtx: CanvasRenderingContext2D | null = null;
-
     const render = () => {
       if (isLoaded) {
         if (clientCanvas) {
@@ -334,132 +287,57 @@ export function ConsolePage() {
       }
     };
     render();
-
     return () => {
       isLoaded = false;
     };
   }, []);
-
   useEffect(() => {
     const wavStreamPlayer = wavStreamPlayerRef.current;
     const client = clientRef.current;
-  
     client.updateSession({ instructions: instructions });
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
-
-    client.addTool(
-      {
-        name: 'set_memory',
-        description: 'Saves important data about the user into memory.',
-        parameters: {
-          type: 'object',
-          properties: {
-            key: {
-              type: 'string',
-              description:
-                'The key of the memory value. Always use lowercase and underscores, no other characters.',
-            },
-            value: {
-              type: 'string',
-              description: 'Value can be anything represented as a string',
-            },
-          },
-          required: ['key', 'value'],
-        },
-      },
-      async ({ key, value }: { [key: string]: any }) => {
-        setMemoryKv((memoryKv) => {
-          const newKv = { ...memoryKv };
-          newKv[key] = value;
-          return newKv;
-        });
-        return { ok: true };
-      }
-    );
-    client.addTool(
-      {
-        name: 'get_weather',
-        description:
-          'Retrieves the weather for a given lat, lng coordinate pair. Specify a label for the location.',
-        parameters: {
-          type: 'object',
-          properties: {
-            lat: {
-              type: 'number',
-              description: 'Latitude',
-            },
-            lng: {
-              type: 'number',
-              description: 'Longitude',
-            },
-            location: {
-              type: 'string',
-              description: 'Name of the location',
-            },
-          },
-          required: ['lat', 'lng', 'location'],
-        },
-      },
-      async ({ lat, lng, location}: { [key: string]: any }) => {
-        setMarker({ lat, lng, location });
-        setCoords({ lat, lng, location });
-        const result = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,wind_speed_10m`
-        );
-        const json = await result.json();
-        
-        const wind_speed = {
-          value: json.current.wind_speed_10m as number,
-          units: json.current_units.wind_speed_10m as string,
-        };
-        const latestTemperature = temperatureRef.current; // NEW: Access the latest value of the temperature
-        console.log('Latest temperature:', latestTemperature); // NEW: Log the latest temperature for debugging
-
-        const temperature = latestTemperature || { value: 0, units: '' }; // NEW: Use the latest temperature or a fallback value
-        setMarker({ lat, lng, location, temperature, wind_speed }); // NEW: Include the latest temperature in the marker
-        return temperature;
-      }
-    );
     client.addTool(
       {
         name: 'Answer',
         description:
-          'Retrieves the answers from the input box that the user inserts always mention the user his answer.',
+          'Retrieves the answers from the input box that the user inserts always mention this input to the user.',
         parameters: {
           type: 'object',
           properties: {
             what: {
               type: 'string',
-              description: 'answer to the question input of "what" mention it to the user',
+              description: 'user input to the question input of "what" right answer is "image or picture"',
             },
             where: {
               type: 'string',
-              description: 'answer to the question input of "where" mention it to the user',
+              description: 'answer to the question input of "where" mention it to the user, if wrong you should say that you like tomatoes and say what quality of the "what" answer is not being accomplished',
             },
             how: {
               type: 'string',
-              description: 'answer to the question input of "how" mention it to the user',
+              description: 'answer to the question input of "how" if answer is wrong mention it to the user and say avocados are indeed tasy',
             },
             when: {
               type: 'string',
               description: 'answer to the question input of "when" mention it to the user',
+            },
+            howmany: {
+              type: 'string',
+              description: 'answer to the question input of "howmany" mention it to the user',
             },
             
           },
           required: [],
         },
       },
-      async ({ what, where, how, when }: { [key: string]: any }) => {
-        //const latestTemperature = temperatureRef.current; // NEW: Access the latest value of the temperature
-        //console.log('Latest temperature:', latestTemperature); // NEW: Log the latest temperature for debugging
-        //const temperature = latestTemperature || { value: 0, units: '' }; // NEW: Use the latest temperature or a fallback value
-        // NEW: Include the latest temperature in the marker
+      async ({ what, where, how, when, howmmany }: { [key: string]: any }) => {
+        
         const whatValue = whatRef.current;
         const whereValue = whereRef.current;
         const howValue = howRef.current;
         const whenValue = whenRef.current;
+        const howmanyValue = howmanyRef.current;
 
-        return [whatValue, whereValue, howValue, whenRef];
+        return [whatValue, whereValue, howValue, whenValue, howmanyValue];
       }
     );
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
@@ -525,7 +403,6 @@ export function ConsolePage() {
       </div>
       <div className="content-main">
         <div className="content-logs">
-          
           <div className="form-grid" style={{ width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
             {/* 1)Perception  of presenting problem */}
             <div className="form-section">
@@ -548,12 +425,12 @@ export function ConsolePage() {
               </div>
               <div className="form-row">
                 <h2>&nbsp;&nbsp;When&nbsp;&nbsp;&nbsp; </h2>
-                <input type="text" name="When" value={inputData.When} onChange={handleInputChange} placeholder="  Is" />
+                <input type="text" name="when" value={inputData.when} onChange={handleInputChange} placeholder="  Is" />
                 <input type="text" placeholder="  Is not" />
               </div>
               <div className="form-row">
                 <h2>How many&nbsp; </h2>
-                <input type="text" name="HowMany" value={inputData.HowMany} onChange={handleInputChange} placeholder="  Is" />
+                <input type="text" name="howmany" value={inputData.howmany} onChange={handleInputChange} placeholder="  Is" />
                 <input type="text" placeholder="  Is not" />
               </div>
             </div>
@@ -623,7 +500,6 @@ export function ConsolePage() {
              {/* Empieza 4)Ishikawa */}
              <div className="form-section">
               <h3>4.1) Root cause analysis</h3>
-              
               <div className="form-row">
                 <h2>Rood cause 1</h2>
                 <input type="text" placeholder="Why" />
@@ -656,8 +532,7 @@ export function ConsolePage() {
               <div className="form-row">
                 <input type="text" placeholder="Ansatz" />
                 <input type="text" placeholder="Objekt" />
-                <input type="text" placeholder="Defekt am Objekt" />
-                
+                <input type="text" placeholder="Defekt am Objekt" />  
               </div>
             </div>
           </div>
@@ -757,19 +632,7 @@ export function ConsolePage() {
           <div className="content-block kv">
             <div className="content-block-title">set_memory()</div>
             <div className="content-block-body content-kv">
-              {JSON.stringify(memoryKv, null, 2)}
-            </div>
-          </div>
-          <div className="content-block kv">
-            <div className="content-block-title">Temperature()</div>
-            <div className="content-block-body content-kv">
-              {JSON.stringify(temperature, null, 2)}
-            </div>
-          </div>
-          <div className="content-block kv">
-            <div className="content-block-title">Answers()</div>
-            <div className="content-block-body content-kv">
-              {JSON.stringify(testy, null, 2)}
+             {JSON.stringify(memoryKv, null, 2)}
             </div>
           </div>
           <div className="content-block events">
