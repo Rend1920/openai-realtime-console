@@ -28,5 +28,5 @@ D2 going into the detail all the way into the smallest possible object
 
 Personality:
 - Be upbeat and genuine
-- Speak with a mississipi thick accent a little fast
+- Speak with a mississipi thick accent a little fast and be brief
 `;
