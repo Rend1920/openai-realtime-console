@@ -45,6 +45,7 @@ export function ConsolePage() {
   const whereRef = useRef<{ value: string;} | null>(null);
   const howRef = useRef<{ value: string;} | null>(null);
   const whenRef = useRef<{ value: string;} | null>(null);
+  const howmanyRef = useRef<{ value: string;} | null>(null);
   const apiKey = LOCAL_RELAY_SERVER_URL
     ? ''
     : localStorage.getItem('tmp::voice_api_key') ||
@@ -98,8 +99,8 @@ export function ConsolePage() {
     What: "",
     Where: "",
     How: "",
-    When: "",
-    HowMany: ""
+    when: "",
+    howmany: ""
   };
   const [inputData, setInputData] = useState(initialData);
   const testy = {
@@ -247,9 +248,12 @@ export function ConsolePage() {
       value: inputData.How,
     }
     whenRef.current = {
-      value: inputData.When,
+      value: inputData.when,
     }
-  }, [inputData.What, inputData.Where, inputData.How, inputData.When]); // NEW: Dependencies to update ref whenever these inputs change
+    howmanyRef.current = {
+      value: inputData.howmany,
+    }
+  }, [inputData.What, inputData.Where, inputData.How, inputData.when, inputData.howmany]); // NEW: Dependencies to update ref whenever these inputs change
 
 
   useEffect(() => {
@@ -444,12 +448,16 @@ export function ConsolePage() {
               type: 'string',
               description: 'answer to the question input of "when" mention it to the user',
             },
+            howmany: {
+              type: 'string',
+              description: 'answer to the question input of "howmany" mention it to the user',
+            },
             
           },
           required: [],
         },
       },
-      async ({ what, where, how, when }: { [key: string]: any }) => {
+      async ({ what, where, how, when, howmany }: { [key: string]: any }) => {
         //const latestTemperature = temperatureRef.current; // NEW: Access the latest value of the temperature
         //console.log('Latest temperature:', latestTemperature); // NEW: Log the latest temperature for debugging
         //const temperature = latestTemperature || { value: 0, units: '' }; // NEW: Use the latest temperature or a fallback value
@@ -458,8 +466,10 @@ export function ConsolePage() {
         const whereValue = whereRef.current;
         const howValue = howRef.current;
         const whenValue = whenRef.current;
+        const howmanyValue = howmanyRef.current;
+      
 
-        return [whatValue, whereValue, howValue, whenRef];
+        return [whatValue, whereValue, howValue, whenValue, howmanyValue];
       }
     );
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
@@ -548,12 +558,12 @@ export function ConsolePage() {
               </div>
               <div className="form-row">
                 <h2>&nbsp;&nbsp;When&nbsp;&nbsp;&nbsp; </h2>
-                <input type="text" name="When" value={inputData.When} onChange={handleInputChange} placeholder="  Is" />
+                <input type="text" name="when" value={inputData.when} onChange={handleInputChange} placeholder="  Is" />
                 <input type="text" placeholder="  Is not" />
               </div>
               <div className="form-row">
                 <h2>How many&nbsp; </h2>
-                <input type="text" name="HowMany" value={inputData.HowMany} onChange={handleInputChange} placeholder="  Is" />
+                <input type="text" name="howmany" value={inputData.howmany} onChange={handleInputChange} placeholder="  Is" />
                 <input type="text" placeholder="  Is not" />
               </div>
             </div>
