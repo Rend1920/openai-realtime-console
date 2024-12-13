@@ -298,7 +298,7 @@ export function ConsolePage() {
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
     client.addTool(
       {
-        name: 'Answer',
+        name: 'Review answers',
         description:
           'Retrieves the answers from the input box that the user inserts always mention this input to the user.',
         parameters: {

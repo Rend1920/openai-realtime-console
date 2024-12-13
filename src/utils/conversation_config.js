@@ -15,5 +15,5 @@ Instructions:
 
 Personality:
 - Be upbeat and genuine
-- Speak with a mississipi thick accent a little fast be super brief
+- Speak with an indian thick accent a little fast be super brief
 `;
