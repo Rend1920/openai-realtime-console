@@ -43,6 +43,16 @@ interface RealtimeEvent {
 }
 
 export function ConsolePage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalImage, setModalImage] = useState<string | null>(null);
+  const openModal = (image: string) => {
+    setIsModalOpen(true);
+    setModalImage(image);
+  };
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalImage(null);
+  };
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
 const images = [
   img0,
@@ -788,18 +798,37 @@ const handlePreviousImage = () => {
             camera-controls
             style={{ width: '100%', height: '400px', backgroundColor: '#ececf1' }}>
           </model-viewer>
-          </div>
-          <div className="content-block image-gallery"  >
-            <div className="content-block-title">Support material</div>
-            <div className="content-block-body" style={{ width: '100%', height: '300px', }}>
-              <div className="image-grid" style={{marginTop:'0px', height: '240px'}}>
-                <img src={images[currentImageIndex]} alt={`Image ${currentImageIndex + 1}`} />
-              </div>
-              <div className="gallery-controls">
-                <button onClick={handlePreviousImage}>Previous</button>
-                <button onClick={handleNextImage}>Next</button>
-              </div>
-            </div>
+       </div>
+       <div className="content-block image-gallery">
+  <div className="content-block-title">Support material</div>
+  <div className="content-block-body"style={{ width: '100%', height: '300px', }}>
+    <div className="image-grid"style={{marginTop:'0px', height: '240px'}}>
+      <img
+        src={images[currentImageIndex]}
+        alt={`Image ${currentImageIndex + 1}`}
+        onClick={() => openModal(images[currentImageIndex])}
+        style={{ cursor: 'pointer' }} // Indicate the image is clickable
+      />
+    </div>
+    <div className="gallery-controls">
+      <button onClick={handlePreviousImage}>Previous</button>
+      <button onClick={handleNextImage}>Next</button>
+    </div>
+  </div>
+
+  {isModalOpen && (
+    <div
+      className="modal-overlay"
+      onClick={closeModal} // Close the modal when the overlay is clicked
+    >
+      <div className="modal-content">
+        <img src={modalImage!} alt="Zoomed in" />
+        <button className="close-button" onClick={closeModal}>
+          Close
+        </button>
+      </div>
+    </div>
+  )}
 </div>
           <div className="content-block usdz-viewer">
         <div className="content-right">

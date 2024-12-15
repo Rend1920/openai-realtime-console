@@ -213,7 +213,45 @@
         }
       }
     }
-  
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8); /* Dark transparent background */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000; /* Ensure it's above other elements */
+    }
+    
+    .modal-content img {
+      max-width: 80vw; /* Limit the width to 80% of the viewport */
+      max-height: 80vh; /* Limit the height to 80% of the viewport */
+      object-fit: contain; /* Ensure the image scales to fit while preserving its aspect ratio */
+      display: block;
+      margin: auto; /* Center the image within the modal */
+      border-radius: 100px; /* Optional: Add rounded corners */
+    }
+    
+    .modal-content img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    .close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ff4d4d;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   .image-gallery {
     .content-block-body {
       display: flex;
