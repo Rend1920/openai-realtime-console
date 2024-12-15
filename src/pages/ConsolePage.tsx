@@ -2,7 +2,10 @@ const LOCAL_RELAY_SERVER_URL: string =
   process.env.REACT_APP_LOCAL_RELAY_SERVER_URL || '';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import img1 from '/Users/danielrendon/Documents/Rend/Bosch/Prototypes/openai-realtime-console-1/src/Screenshot 2024-12-15 at 16.55.00.png';
+import img0 from '/Users/danielrendon/Documents/Rend/Bosch/Prototypes/openai-realtime-console-1/src/images/Instruction .png';
+import img1 from '/Users/danielrendon/Documents/Rend/Bosch/Prototypes/openai-realtime-console-1/src/images/Instruction 1.png';
+import img2 from '/Users/danielrendon/Documents/Rend/Bosch/Prototypes/openai-realtime-console-1/src/images/Instruction 2.png';
+import img3 from '/Users/danielrendon/Documents/Rend/Bosch/Prototypes/openai-realtime-console-1/src/images/Instruction 3.png';
 import { RealtimeClient } from '@openai/realtime-api-beta';
 import { ItemType } from '@openai/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools/index.js';
@@ -40,6 +43,22 @@ interface RealtimeEvent {
 }
 
 export function ConsolePage() {
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+const images = [
+  img0,
+  img1,
+  img2, // Add all your image paths here
+  img3, // Add all your image paths here
+];
+const handleNextImage = () => {
+  setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+};
+
+const handlePreviousImage = () => {
+  setCurrentImageIndex((prevIndex) =>
+    (prevIndex - 1 + images.length) % images.length
+  );
+};
   const temperatureRef = useRef<{ value: number; units: string } | null>(null);
   const whatRef = useRef<{ value: string;} | null>(null);
   const whereRef = useRef<{ value: string;} | null>(null);
@@ -770,14 +789,18 @@ export function ConsolePage() {
             style={{ width: '100%', height: '400px', backgroundColor: '#ececf1' }}>
           </model-viewer>
           </div>
-  <div className="content-block image-gallery">
-    <div className="content-block-title">Support material</div>
-    <div className="content-block-body">
-      <div className="image-grid">
-        <img src={img1} alt="Image 1" />
-      </div>
-    </div>
-  </div>
+          <div className="content-block image-gallery"  >
+            <div className="content-block-title">Support material</div>
+            <div className="content-block-body" style={{ width: '100%', height: '300px', }}>
+              <div className="image-grid" style={{marginTop:'0px', height: '240px'}}>
+                <img src={images[currentImageIndex]} alt={`Image ${currentImageIndex + 1}`} />
+              </div>
+              <div className="gallery-controls">
+                <button onClick={handlePreviousImage}>Previous</button>
+                <button onClick={handleNextImage}>Next</button>
+              </div>
+            </div>
+</div>
           <div className="content-block usdz-viewer">
         <div className="content-right">
           
