@@ -767,13 +767,21 @@ export function ConsolePage() {
       </div>
     </div>
   </div>
+          <div className="content-block usdz-viewer">
+          <div className="content-block usdz-viewer">
+        <div className="content-block-title">3D Model Viewer</div>
+        <div className="content-block-body">
+          <model-viewer
+            src="/models/scanner.glb"
+            alt="3D GLB Model"
+            auto-rotate
+            camera-controls
+            style={{ width: '100%', height: '400px', backgroundColor: '#f0f0f0' }}>
+          </model-viewer>
+        </div>
+      </div>
         <div className="content-right">
-          <div className="content-block kv">
-            <div className="content-block-title">set_memory()</div>
-            <div className="content-block-body content-kv">
-              {JSON.stringify(memoryKv, null, 2)}
-            </div>
-          </div>
+          
           <div className="content-block kv">
             <div className="content-block-title">Answers()</div>
             <div className="content-block-body content-kv">
@@ -781,6 +789,8 @@ export function ConsolePage() {
               
             </div>
           </div>
+</div>
+
   <div className="content-block events">
     <div className="visualization">
       <div className="visualization-entry client">
