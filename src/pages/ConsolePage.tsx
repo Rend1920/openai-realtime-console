@@ -2,7 +2,7 @@ const LOCAL_RELAY_SERVER_URL: string =
   process.env.REACT_APP_LOCAL_RELAY_SERVER_URL || '';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-
+import img1 from '/Users/danielrendon/Documents/Rend/Bosch/Prototypes/openai-realtime-console-1/src/Screenshot 2024-12-15 at 16.55.00.png';
 import { RealtimeClient } from '@openai/realtime-api-beta';
 import { ItemType } from '@openai/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from '../lib/wavtools/index.js';
@@ -758,6 +758,15 @@ export function ConsolePage() {
             />
           </div>
         </div>
+          <div className="content-right">
+  <div className="content-block image-gallery">
+    <div className="content-block-title">Image Gallery</div>
+    <div className="content-block-body">
+      <div className="image-grid">
+        <img src={img1} alt="Image 1" />
+      </div>
+    </div>
+  </div>
         <div className="content-right">
           <div className="content-block kv">
             <div className="content-block-title">set_memory()</div>
@@ -769,8 +778,21 @@ export function ConsolePage() {
             <div className="content-block-title">Answers()</div>
             <div className="content-block-body content-kv">
               {JSON.stringify(inputData, null, 2)}
+              
             </div>
           </div>
+  <div className="content-block events">
+    <div className="visualization">
+      <div className="visualization-entry client">
+        <canvas ref={clientCanvasRef} />
+      </div>
+      <div className="visualization-entry server">
+        <canvas ref={serverCanvasRef} />
+      </div>
+    </div>
+  </div>
+</div>
+
           <div className="content-block events">
             <div className="visualization">
               <div className="visualization-entry client">
