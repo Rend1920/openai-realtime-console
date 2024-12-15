@@ -166,7 +166,7 @@ export function ConsolePage() {
     client.sendUserMessageContent([
       {
         type: `input_text`,
-        text: `Hello!`,
+        text: `Hello! hey i just updated all my answers in the input boxes can you check all my answers in the input boxes`,
       },
     ]);
 
@@ -428,29 +428,29 @@ export function ConsolePage() {
       {
         name: 'Answer',
         description:
-          'Retrieves the answers from the input box that the user inserts always mention the user his answer.',
+          'Retrieves the info from student in the input box that the user inserts always mention the user his answer.',
         parameters: {
           type: 'object',
           properties: {
             what: {
               type: 'string',
-              description: 'answer to the question input of "what" mention it to the user',
+              description: 'answer to the question input of "what" mention it to the user wrong be sure to say: "what did the people complain about?"',
             },
             where: {
               type: 'string',
-              description: 'answer to the question input of "where" mention it to the user',
+              description: 'answer to the question input of "where" mention it to the user wrong be sure to say: "Where at the what, what quality of the what is not being accomplished?"',
             },
             how: {
               type: 'string',
-              description: 'answer to the question input of "how" mention it to the user',
+              description: 'user answer to the question input of "how" mention it to the user if wrong be sure to say "How was it detected, be precise, how many complained"' ,
             },
             when: {
               type: 'string',
-              description: 'answer to the question input of "when" mention it to the user',
+              description: 'answer to the question input of "when" mention it to the user wrong be sure to say: "When do you have reoccurrence, minutes? After set up?"',
             },
             howmany: {
               type: 'string',
-              description: 'answer to the question input of "howmany" mention it to the user',
+              description: 'answer to the question input of "howmany" mention it to the user wrong be sure to say: "Does it have a pattern does is happen ever time?"',
             },
             
           },
@@ -458,17 +458,12 @@ export function ConsolePage() {
         },
       },
       async ({ what, where, how, when, howmany }: { [key: string]: any }) => {
-        //const latestTemperature = temperatureRef.current; // NEW: Access the latest value of the temperature
-        //console.log('Latest temperature:', latestTemperature); // NEW: Log the latest temperature for debugging
-        //const temperature = latestTemperature || { value: 0, units: '' }; // NEW: Use the latest temperature or a fallback value
-        // NEW: Include the latest temperature in the marker
+       
         const whatValue = whatRef.current;
         const whereValue = whereRef.current;
         const howValue = howRef.current;
         const whenValue = whenRef.current;
         const howmanyValue = howmanyRef.current;
-      
-
         return [whatValue, whereValue, howValue, whenValue, howmanyValue];
       }
     );
@@ -771,15 +766,9 @@ export function ConsolePage() {
             </div>
           </div>
           <div className="content-block kv">
-            <div className="content-block-title">Temperature()</div>
-            <div className="content-block-body content-kv">
-              {JSON.stringify(temperature, null, 2)}
-            </div>
-          </div>
-          <div className="content-block kv">
             <div className="content-block-title">Answers()</div>
             <div className="content-block-body content-kv">
-              {JSON.stringify(testy, null, 2)}
+              {JSON.stringify(inputData, null, 2)}
             </div>
           </div>
           <div className="content-block events">
