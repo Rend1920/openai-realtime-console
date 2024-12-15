@@ -758,9 +758,20 @@ export function ConsolePage() {
             />
           </div>
         </div>
-          <div className="content-right">
+        
+          <div className="content-right" style={{overflowY: 'auto',}}>
+          <div className="content-block image-gallery">
+            <div className="content-block-title">Projector</div>
+            <model-viewer
+            src="/models/scanner.glb"
+            alt="3D GLB Model"
+            auto-rotate
+            camera-controls
+            style={{ width: '100%', height: '400px', backgroundColor: '#ececf1' }}>
+          </model-viewer>
+          </div>
   <div className="content-block image-gallery">
-    <div className="content-block-title">Image Gallery</div>
+    <div className="content-block-title">Support material</div>
     <div className="content-block-body">
       <div className="image-grid">
         <img src={img1} alt="Image 1" />
@@ -768,18 +779,6 @@ export function ConsolePage() {
     </div>
   </div>
           <div className="content-block usdz-viewer">
-          <div className="content-block usdz-viewer">
-        <div className="content-block-title">3D Model Viewer</div>
-        <div className="content-block-body">
-          <model-viewer
-            src="/models/scanner.glb"
-            alt="3D GLB Model"
-            auto-rotate
-            camera-controls
-            style={{ width: '100%', height: '400px', backgroundColor: '#f0f0f0' }}>
-          </model-viewer>
-        </div>
-      </div>
         <div className="content-right">
           
           <div className="content-block kv">
